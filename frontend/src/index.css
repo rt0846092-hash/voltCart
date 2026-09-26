@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :focus-visible { outline: 2px solid #0c0c0d; outline-offset: 2px; }
+  input, select, textarea { font-size: 16px; } /* stops iOS zooming into fields */
+  @media (min-width: 640px) { input, select, textarea { font-size: 0.875rem; } }
+}
+
+.field {
+  @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 outline-none transition focus:border-ink;
+}
+.label { @apply mb-1.5 block text-sm font-semibold; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
