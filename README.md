@@ -36,9 +36,9 @@ A full-stack electronics store: a React storefront, a Django REST API, PostgreSQ
 | --- | --- |
 | Frontend | React 18, React Router, Tailwind CSS, Vite |
 | Backend | Django 5, Django REST Framework, Simple JWT |
-| Database | PostgreSQL (SQLite for local development) |
+| Database | PostgreSQL on Neon (SQLite for local development) |
 | Payments | Stripe Checkout + webhooks |
-| Hosting | Render (API, database and static site via `render.yaml`) |
+| Hosting | Vercel (website), Render (API), Neon (database) |
 | Testing | 24 Django tests covering checkout, stock, payments and permissions |
 
 ## How it works
@@ -96,7 +96,9 @@ Without Stripe keys the store still works, with cash on delivery only.
 
 ## Deploy
 
-On [Render](https://render.com): **New → Blueprint → pick this repo**. It creates the database, the API and the website from `render.yaml`. Fill in the website address (`CORS_ALLOWED_ORIGINS`, `FRONTEND_URL`), the API address (`VITE_API_URL`), your admin login, and optionally your Stripe keys.
+- **Database:** create a free PostgreSQL project on [Neon](https://neon.tech) and copy the direct (non-pooled) connection string.
+- **API:** on [Render](https://render.com), **New → Blueprint → pick this repo**. It reads `render.yaml`. Set `DATABASE_URL` to the Neon string, plus the website address (`CORS_ALLOWED_ORIGINS`, `FRONTEND_URL`), your admin login, and optionally Stripe keys.
+- **Website:** on [Vercel](https://vercel.com), import this repo with **Root Directory** set to `frontend`, and set `VITE_API_URL` to `https://<your-api>.onrender.com/api`.
 
 ## Author
 
