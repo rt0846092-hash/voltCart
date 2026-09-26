@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
+import AdminProducts from "../components/AdminProducts";
 import { Alert, Button, PageTitle, Spinner, StatusBadge } from "../components/ui";
 import { api } from "../lib/api";
 import { formatDate, formatPrice } from "../lib/format";
-
-const DJANGO_ADMIN = (import.meta.env.VITE_API_URL || "http://localhost:8000/api").replace(/\/api\/?$/, "") + "/admin/";
 
 function Stat({ label, value, hint }) {
   return (
@@ -69,6 +68,7 @@ export default function Admin() {
   const [status, setStatus] = useState("processing");
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
+  const [tab, setTab] = useState("orders");
 
   const loadStats = useCallback(() => api("/admin/stats/").then(setStats).catch((e) => setError(e.message)), []);
 
@@ -98,12 +98,7 @@ export default function Admin() {
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <PageTitle eyebrow="Staff">Dashboard</PageTitle>
-        <Button as="a" href={DJANGO_ADMIN} target="_blank" rel="noreferrer" variant="ghost" className="mb-8">
-          Edit products & stock ↗
-        </Button>
-      </div>
+      <PageTitle eyebrow="Staff">Dashboard</PageTitle>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat label="Revenue · 30 days" value={formatPrice(stats.revenue_30d)} hint="Paid orders only" />
@@ -144,9 +139,20 @@ export default function Admin() {
         </div>
       </div>
 
+      <div className="flex gap-1 border-b border-line" role="tablist">
+        {[["orders", "Orders"], ["products", "Products & stock"]].map(([key, label]) => (
+          <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)}
+            className={`-mb-px border-b-2 px-4 py-2 font-display text-lg font-bold ${tab === key ? "border-ink" : "border-transparent text-ink-mute hover:text-ink"}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "products" ? (
+        <AdminProducts onChange={loadStats} />
+      ) : (
       <section>
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="mr-4 font-display text-xl font-bold">Orders</h2>
           {[{ status: "", label: "All" }, ...stats.by_status].map((s) => (
             <button key={s.status || "all"} onClick={() => setStatus(s.status)}
               className={`rounded-full px-3 py-1 text-sm ${status === s.status ? "bg-ink text-paper" : "bg-white hover:bg-line/50"}`}>
@@ -174,6 +180,7 @@ export default function Admin() {
           )}
         </div>
       </section>
+      )}
     </div>
   );
 }

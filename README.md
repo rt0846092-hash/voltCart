@@ -22,13 +22,14 @@ A full-stack electronics store: a React storefront, a Django REST API, PostgreSQ
 
 **Accounts and orders**
 - Sign up and log in with email (JWT authentication)
+- Account page to update your name and change your password
 - Order history, order tracking timeline, and cancelling orders that haven't shipped
 - Confirmation and shipping emails
 
 **Staff dashboard**
 - Revenue, order counts, best sellers and low-stock alerts
 - Filter and search orders, and move them through *processing → shipped → delivered*, or cancel them (stock is restored)
-- Django admin for editing products, prices and stock
+- Add and edit products, and update prices, stock and visibility right from the dashboard
 
 ## Tech stack
 
@@ -39,7 +40,7 @@ A full-stack electronics store: a React storefront, a Django REST API, PostgreSQ
 | Database | PostgreSQL on Neon (SQLite for local development) |
 | Payments | Stripe Checkout + webhooks |
 | Hosting | Vercel (website), Render (API), Neon (database) |
-| Testing | 24 Django tests covering checkout, stock, payments and permissions |
+| Testing | 30 Django tests covering checkout, stock, payments, accounts and permissions |
 
 ## How it works
 
@@ -53,10 +54,13 @@ See **[docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)** for a walkthrough of the ar
 | GET | `/api/products/<slug>/` | Anyone | Product detail |
 | GET | `/api/categories/` | Anyone | Categories with product counts |
 | POST | `/api/auth/register/` · `/api/auth/login/` | Anyone | Returns JWT tokens |
+| GET, PATCH | `/api/auth/me/` | Customer | Your profile |
+| POST | `/api/auth/change-password/` | Customer | Change password |
 | POST | `/api/orders/` | Customer | Checkout |
 | GET | `/api/orders/` · `/api/orders/<id>/` | Customer | Your orders |
 | POST | `/api/orders/<id>/cancel/` | Customer | Cancel an unshipped order |
 | GET, PATCH | `/api/admin/orders/` | Staff | All orders; change status |
+| GET, POST, PATCH | `/api/admin/products/` | Staff | Manage products and stock |
 | GET | `/api/admin/stats/` | Staff | Dashboard numbers |
 | POST | `/api/webhooks/stripe/` | Stripe | Payment events (signature-checked) |
 

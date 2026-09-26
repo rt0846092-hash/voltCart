@@ -74,18 +74,20 @@ Staff can only make the moves listed in `Order.STAFF_TRANSITIONS`, so an order c
 - Anyone can browse products.
 - Customers can only see and cancel **their own** orders: the queryset is filtered by `user=request.user`, so another customer's order simply returns 404.
 - Staff endpoints use DRF's `IsAdminUser`.
+- Everything people do happens on the website: customers change their password on the Account page, and staff manage products and stock in the dashboard. Products are hidden instead of deleted, so old orders keep their details.
 - Login, sign-up and checkout are rate-limited to slow down abuse.
 
 ## 7. Tests
 
-`backend/tests/test_shop.py` has 24 tests. The Stripe tests use `unittest.mock` to fake Stripe's responses, so they run offline. They cover:
+`backend/tests/test_shop.py` has 30 tests. The Stripe tests use `unittest.mock` to fake Stripe's responses, so they run offline. They cover:
 - prices coming from the database, not the request
 - an order failing as a whole when one item is out of stock
 - the last item only being sold once
 - webhooks marking orders paid exactly once
 - expired sessions returning stock
 - customers not seeing each other's orders
-- staff status rules
+- staff status rules, and staff-only product editing
+- changing passwords (the current password must be right, and weak new ones are rejected)
 
 ## Things I'd add next
 

@@ -54,6 +54,7 @@ function Header() {
         <nav className="hidden items-center gap-5 md:flex">
           <NavLink to="/shop" className={navClass} end>Shop</NavLink>
           {user && <NavLink to="/orders" className={navClass}>Orders</NavLink>}
+          {user && <NavLink to="/account" className={navClass}>Account</NavLink>}
           {user?.is_staff && <NavLink to="/admin" className={navClass}>Dashboard</NavLink>}
         </nav>
         <div className="ml-auto hidden w-72 md:block"><SearchBox /></div>
@@ -79,6 +80,7 @@ function Header() {
           <nav className="flex flex-col gap-3">
             <NavLink to="/shop" className={navClass}>Shop</NavLink>
             {user && <NavLink to="/orders" className={navClass}>My orders</NavLink>}
+            {user && <NavLink to="/account" className={navClass}>Account</NavLink>}
             {user?.is_staff && <NavLink to="/admin" className={navClass}>Dashboard</NavLink>}
             {user ? (
               <button onClick={logout} className="text-left text-sm font-semibold text-ink-mute">Log out</button>

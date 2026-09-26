@@ -34,13 +34,19 @@ export function AuthProvider({ children }) {
       api("/auth/register/", { method: "POST", body: { name, email, password }, auth: false }).then(finish),
     [finish]
   );
+  // After a profile edit or password change on the Account page
+  const updateSession = useCallback((data) => {
+    if (data.access) tokens.set(data);
+    setUser(data.user ?? data);
+  }, []);
+
   const logout = useCallback(() => {
     tokens.clear();
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, ready, login, register, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, ready, login, register, logout, updateSession }}>{children}</AuthContext.Provider>
   );
 }
 

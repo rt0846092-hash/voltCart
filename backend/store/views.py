@@ -2,7 +2,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
 from django.db.models import Count, F, Q
-from rest_framework import generics, viewsets
+from rest_framework import generics, permissions, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -10,7 +10,12 @@ from rest_framework.response import Response
 from orders.services import stripe_enabled
 
 from .models import Category, Product
-from .serializers import CategorySerializer, ProductDetailSerializer, ProductListSerializer
+from .serializers import (
+    AdminProductSerializer,
+    CategorySerializer,
+    ProductDetailSerializer,
+    ProductListSerializer,
+)
 
 
 class ProductPagination(PageNumberPagination):
@@ -68,6 +73,21 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(featured=True)
         if (ordering := p.get("ordering")) in self.ORDERINGS:
             qs = qs.order_by(ordering, "id")
+        return qs
+
+
+class AdminProductViewSet(viewsets.ModelViewSet):
+    """Staff product management, including hidden products. Products are hidden, not deleted,
+    so past orders keep their history."""
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = AdminProductSerializer
+    pagination_class = None
+    http_method_names = ["get", "post", "patch"]
+
+    def get_queryset(self):
+        qs = Product.objects.select_related("category").order_by("category__position", "name")
+        if search := self.request.query_params.get("search", "").strip():
+            qs = qs.filter(Q(name__icontains=search) | Q(brand__icontains=search))
         return qs
 
 

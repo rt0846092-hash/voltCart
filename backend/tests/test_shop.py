@@ -251,3 +251,57 @@ class StripeTests(ShopTestCase):
         self.assertEqual(res.status_code, 502)
         self.cheap.refresh_from_db()
         self.assertEqual(self.cheap.stock, 5)
+
+
+class AccountTests(ShopTestCase):
+    def test_change_password(self):
+        self.client.force_authenticate(self.user)
+        url = "/api/auth/change-password/"
+        wrong = self.client.post(url, {"current_password": "nope", "new_password": "brand-new-pass-42"}, format="json")
+        self.assertEqual(wrong.status_code, 400)
+        res = self.client.post(url, {"current_password": "pass-1234-xyz", "new_password": "brand-new-pass-42"}, format="json")
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("access", res.data)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("brand-new-pass-42"))
+
+    def test_weak_new_password_rejected(self):
+        self.client.force_authenticate(self.user)
+        res = self.client.post("/api/auth/change-password/",
+                               {"current_password": "pass-1234-xyz", "new_password": "12345678"}, format="json")
+        self.assertEqual(res.status_code, 400)
+
+    def test_update_name(self):
+        self.client.force_authenticate(self.user)
+        res = self.client.patch("/api/auth/me/", {"name": "Roshan T"}, format="json")
+        self.assertEqual(res.data["name"], "Roshan T")
+
+
+class AdminProductTests(ShopTestCase):
+    def test_staff_can_create_edit_and_hide_products(self):
+        self.client.force_authenticate(self.staff)
+        res = self.client.post("/api/admin/products/", {
+            "name": "Buds", "brand": "Pulse", "category": "audio", "tagline": "t", "description": "d",
+            "price": "19.99", "stock": 4, "color": "#123456", "specs": {"Battery": "6 h"},
+        }, format="json")
+        self.assertEqual(res.status_code, 201, res.data)
+        self.assertEqual(res.data["slug"], "buds-2")  # "buds" is taken, so a unique slug is made
+        pid = res.data["id"]
+        res = self.client.patch(f"/api/admin/products/{pid}/", {"stock": 12, "is_active": False}, format="json")
+        self.assertEqual(res.data["stock"], 12)
+        # Hidden products disappear from the shop but stay in the staff list
+        self.assertEqual(self.client.get(f"/api/products/{res.data['slug']}/").status_code, 404)
+        self.assertEqual(len(self.client.get("/api/admin/products/").data), 3)
+
+    def test_validation(self):
+        self.client.force_authenticate(self.staff)
+        res = self.client.patch(f"/api/admin/products/{self.cheap.id}/", {"compare_at_price": "30.00"}, format="json")
+        self.assertEqual(res.status_code, 400)
+        res = self.client.patch(f"/api/admin/products/{self.cheap.id}/", {"color": "blue"}, format="json")
+        self.assertEqual(res.status_code, 400)
+
+    def test_customers_cannot_manage_products(self):
+        self.client.force_authenticate(self.user)
+        self.assertEqual(self.client.get("/api/admin/products/").status_code, 403)
+        res = self.client.patch(f"/api/admin/products/{self.cheap.id}/", {"price": "1.00"}, format="json")
+        self.assertEqual(res.status_code, 403)
