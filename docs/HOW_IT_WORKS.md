@@ -24,7 +24,9 @@ When you log in, the API returns two tokens:
 - an **access token** (valid 30 minutes), sent with every request as `Authorization: Bearer <token>`
 - a **refresh token** (valid 7 days), used to get a new access token
 
-`lib/api.js` does this automatically: when a request gets `401 Unauthorized`, it refreshes the access token once and retries. Users log in with their email; behind the scenes the email is also stored as Django's username.
+`lib/api.js` does this automatically: when a request gets `401 Unauthorized`, it refreshes the access token once and retries. If that fails too, the website logs you out cleanly.
+
+Every token also carries a fingerprint of the password (`CHECK_REVOKE_TOKEN`). Changing your password changes the fingerprint, so every other device that was logged in is logged out, which matters if someone else had your login. Users log in with their email; behind the scenes the email is also stored as Django's username.
 
 ## 2. The cart
 
@@ -79,7 +81,7 @@ Staff can only make the moves listed in `Order.STAFF_TRANSITIONS`, so an order c
 
 ## 7. Tests
 
-`backend/tests/test_shop.py` has 30 tests. The Stripe tests use `unittest.mock` to fake Stripe's responses, so they run offline. They cover:
+`backend/tests/test_shop.py` has 34 tests. The Stripe tests use `unittest.mock` to fake Stripe's responses, so they run offline. They cover:
 - prices coming from the database, not the request
 - an order failing as a whole when one item is out of stock
 - the last item only being sold once

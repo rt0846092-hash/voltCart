@@ -31,7 +31,19 @@ export default function Shop() {
   useEffect(() => {
     setData(null);
     setError("");
-    api(`/products/?${query}`, { auth: false }).then(setData).catch((e) => setError(e.message));
+    api(`/products/?${query}`, { auth: false })
+      .then(setData)
+      .catch((e) => {
+        // e.g. ?page=999 from an old link: show the first page instead of an error
+        if (e.status === 404 && params.get("page")) {
+          const next = new URLSearchParams(params);
+          next.delete("page");
+          setParams(next, { replace: true });
+        } else {
+          setError(e.message);
+        }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   useEffect(() => {

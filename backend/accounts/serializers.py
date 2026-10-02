@@ -1,6 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.settings import api_settings
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.utils import get_md5_hash_password
 
 User = get_user_model()
 
@@ -59,3 +64,16 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError({"new_password": "Choose a password different from your current one."})
         validate_password(attrs["new_password"], self.context["user"])
         return attrs
+
+
+
+class RevocableTokenRefreshSerializer(TokenRefreshSerializer):
+    """Refuse to refresh a login made before the password was changed, or for a disabled account."""
+
+    def validate(self, attrs):
+        refresh = RefreshToken(attrs["refresh"])
+        user = User.objects.filter(pk=refresh.payload.get(api_settings.USER_ID_CLAIM), is_active=True).first()
+        claim = refresh.payload.get(api_settings.REVOKE_TOKEN_CLAIM)
+        if user is None or claim != get_md5_hash_password(user.password):
+            raise InvalidToken("This login has expired. Please log in again.")
+        return super().validate(attrs)

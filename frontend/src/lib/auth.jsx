@@ -7,6 +7,13 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
 
+  // Logged out elsewhere (password changed on another device, or login expired)
+  useEffect(() => {
+    const onExpired = () => setUser(null);
+    window.addEventListener("vc:session-expired", onExpired);
+    return () => window.removeEventListener("vc:session-expired", onExpired);
+  }, []);
+
   // Restore the session on page load
   useEffect(() => {
     if (!tokens.access) {

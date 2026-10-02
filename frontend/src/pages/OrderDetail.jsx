@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Alert, Button, Empty, Spinner, StatusBadge } from "../components/ui";
 import { api } from "../lib/api";
+import { useConfig } from "../lib/config";
 import { formatDate, formatPrice } from "../lib/format";
 
 const STEPS = [
@@ -34,6 +35,7 @@ export default function OrderDetail() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const cameBackPaid = params.get("payment") === "success";
+  const { emails } = useConfig();
 
   const load = useCallback(() => api(`/orders/${id}/`).then((o) => { setOrder(o); return o; }), [id]);
 
@@ -83,7 +85,7 @@ export default function OrderDetail() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       {params.get("placed") && order.status === "processing" && (
-        <Alert tone="success">Thanks! Your order is confirmed. We've emailed you the details.</Alert>
+        <Alert tone="success">Thanks! Your order is confirmed.{emails && " We've emailed you the details."}</Alert>
       )}
       {cameBackPaid && order.paid && <Alert tone="success">Payment received. Thanks for your order!</Alert>}
       {cameBackPaid && pending && <Alert tone="info">Confirming your payment…</Alert>}

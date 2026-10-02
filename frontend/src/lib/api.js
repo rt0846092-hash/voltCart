@@ -47,11 +47,17 @@ async function refreshAccess() {
     body: JSON.stringify({ refresh: tokens.refresh }),
   });
   if (!res.ok) {
-    tokens.clear();
+    expireSession();
     return false;
   }
   tokens.set(await res.json());
   return true;
+}
+
+/* The login is no longer valid (expired, or the password was changed elsewhere) */
+function expireSession() {
+  tokens.clear();
+  window.dispatchEvent(new Event("vc:session-expired"));
 }
 
 export async function api(path, { method = "GET", body, auth = true, retry = true } = {}) {
@@ -70,8 +76,12 @@ export async function api(path, { method = "GET", body, auth = true, retry = tru
     throw new ApiError("Can't reach the store right now. Check your connection and try again.", 0);
   }
 
-  if (res.status === 401 && auth && retry && tokens.refresh && (await refreshAccess())) {
-    return api(path, { method, body, auth, retry: false });
+  if (res.status === 401 && auth && tokens.access) {
+    if (retry && tokens.refresh && (await refreshAccess())) {
+      return api(path, { method, body, auth, retry: false });
+    }
+    if (tokens.access) expireSession();
+    throw new ApiError("Your login has expired. Please log in again.", 401);
   }
 
   const data = res.status === 204 ? null : await res.json().catch(() => null);

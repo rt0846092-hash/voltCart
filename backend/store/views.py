@@ -101,4 +101,5 @@ def store_config(request):
         "free_shipping_over": str(settings.FREE_SHIPPING_OVER),
         "card_payments": stripe_enabled(),
         "max_quantity": settings.MAX_QUANTITY_PER_ITEM,
+        "emails": bool(settings.EMAIL_HOST),
     })

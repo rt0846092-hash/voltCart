@@ -124,6 +124,14 @@ class CheckoutTests(ShopTestCase):
         self.assertEqual(res.status_code, 400)
         self.assertIn("sold out", str(res.data))
 
+    def test_hidden_product_error_names_it(self):
+        self.cheap.is_active = False
+        self.cheap.save()
+        res = self.checkout([{"product_id": self.cheap.id, "quantity": 1}])
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("Buds is no longer available", str(res.data["items"]))
+        self.assertEqual(str(res.data["product_id"]), str(self.cheap.id))
+
     def test_card_payment_unavailable_without_stripe(self):
         res = self.checkout([{"product_id": self.cheap.id, "quantity": 1}], method="card")
         self.assertEqual(res.status_code, 400)
@@ -265,6 +273,26 @@ class AccountTests(ShopTestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password("brand-new-pass-42"))
 
+    def test_password_change_logs_out_other_devices(self):
+        client = APIClient()
+        old = client.post("/api/auth/login/", {"email": "a@example.com", "password": "pass-1234-xyz"}, format="json").data
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {old['access']}")
+        new = client.post("/api/auth/change-password/",
+                          {"current_password": "pass-1234-xyz", "new_password": "brand-new-pass-42"}, format="json").data
+        # The old login no longer works, and can't be refreshed either
+        self.assertEqual(client.get("/api/auth/me/").status_code, 401)
+        self.assertEqual(client.post("/api/auth/refresh/", {"refresh": old["refresh"]}, format="json").status_code, 401)
+        # The tokens returned by the password change do work
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {new['access']}")
+        self.assertEqual(client.get("/api/auth/me/").status_code, 200)
+        self.assertEqual(client.post("/api/auth/refresh/", {"refresh": new["refresh"]}, format="json").status_code, 200)
+
+    def test_disabled_account_cannot_refresh(self):
+        old = APIClient().post("/api/auth/login/", {"email": "a@example.com", "password": "pass-1234-xyz"}, format="json").data
+        self.user.is_active = False
+        self.user.save()
+        self.assertEqual(APIClient().post("/api/auth/refresh/", {"refresh": old["refresh"]}, format="json").status_code, 401)
+
     def test_weak_new_password_rejected(self):
         self.client.force_authenticate(self.user)
         res = self.client.post("/api/auth/change-password/",
@@ -299,6 +327,13 @@ class AdminProductTests(ShopTestCase):
         self.assertEqual(res.status_code, 400)
         res = self.client.patch(f"/api/admin/products/{self.cheap.id}/", {"color": "blue"}, format="json")
         self.assertEqual(res.status_code, 400)
+
+    def test_slug_cannot_be_changed(self):
+        self.client.force_authenticate(self.staff)
+        res = self.client.patch(f"/api/admin/products/{self.cheap.id}/", {"slug": "headphones", "stock": 9}, format="json")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["slug"], "buds")  # ignored, no crash
+        self.assertEqual(res.data["stock"], 9)
 
     def test_customers_cannot_manage_products(self):
         self.client.force_authenticate(self.user)

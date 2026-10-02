@@ -55,7 +55,8 @@ export default function Checkout() {
     } catch (err) {
       setBusy(false);
       // If someone else bought the stock first, fix the cart so the customer can try again
-      if (err.data?.product_id) cart.setStock(err.data.product_id, err.data.available ?? 0);
+      // (the API sends these back as text, so convert them before comparing with cart ids)
+      if (err.data?.product_id) cart.setStock(Number(err.data.product_id), Number(err.data.available ?? 0));
       setError(err.message);
     }
   };

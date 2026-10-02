@@ -45,7 +45,8 @@ export default function Home() {
             <Button as={Link} to="/shop?on_sale=1" variant="ghost">See deals</Button>
           </div>
         </div>
-        <Link to={hero ? `/product/${hero.slug}` : "/shop"} className="group relative block overflow-hidden rounded-3xl bg-white shadow-card">
+        <Link to={hero ? `/product/${hero.slug}` : "/shop"} className="group relative block overflow-hidden rounded-3xl bg-white shadow-card"
+          aria-label={hero ? `Featured: ${hero.name}, ${formatPrice(hero.price)}` : "Browse all products"}>
           {hero ? (
             <>
               <ProductArt product={hero} className="aspect-[4/3] w-full transition duration-700 group-hover:scale-105" />

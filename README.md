@@ -40,7 +40,7 @@ A full-stack electronics store: a React storefront, a Django REST API, PostgreSQ
 | Database | PostgreSQL on Neon (SQLite for local development) |
 | Payments | Stripe Checkout + webhooks |
 | Hosting | Vercel (website), Render (API), Neon (database) |
-| Testing | 30 Django tests covering checkout, stock, payments, accounts and permissions |
+| Testing | 34 Django tests, plus a QA pass of 79 API and 46 browser checks (see [docs/QA_REPORT.md](docs/QA_REPORT.md)) |
 
 ## How it works
 

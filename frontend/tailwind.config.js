@@ -5,7 +5,7 @@ export default {
     extend: {
       colors: {
         paper: "#f5f4ef",
-        ink: { DEFAULT: "#0c0c0d", soft: "#3b3b3f", mute: "#77777d" },
+        ink: { DEFAULT: "#0c0c0d", soft: "#3b3b3f", mute: "#5f5f66" },
         line: "#e2e0d8",
         volt: { DEFAULT: "#d2f53c", deep: "#b5d92a" },
         danger: "#c2410c",

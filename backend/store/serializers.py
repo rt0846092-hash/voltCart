@@ -38,7 +38,6 @@ class AdminProductSerializer(serializers.ModelSerializer):
     """Staff create and edit products from the dashboard."""
     category = serializers.SlugRelatedField(slug_field="slug", queryset=Category.objects.all())
     category_name = serializers.CharField(source="category.name", read_only=True)
-    slug = serializers.SlugField(required=False)
 
     class Meta:
         model = Product
@@ -46,6 +45,9 @@ class AdminProductSerializer(serializers.ModelSerializer):
             "id", "name", "slug", "brand", "category", "category_name", "tagline", "description",
             "price", "compare_at_price", "stock", "specs", "color", "image_url", "is_active", "featured",
         ]
+        # The link (slug) is made from the name when a product is created and never changes,
+        # so shared links and old orders keep working
+        read_only_fields = ["slug"]
 
     def validate_price(self, value):
         if value <= 0:
@@ -72,10 +74,9 @@ class AdminProductSerializer(serializers.ModelSerializer):
 
     def create(self, data):
         from django.utils.text import slugify
-        if not data.get("slug"):
-            base = slugify(data["name"]) or "product"
-            slug, n = base, 2
-            while Product.objects.filter(slug=slug).exists():
-                slug, n = f"{base}-{n}", n + 1
-            data["slug"] = slug
+        base = slugify(data["name"])[:45] or "product"
+        slug, n = base, 2
+        while Product.objects.filter(slug=slug).exists():
+            slug, n = f"{base}-{n}", n + 1
+        data["slug"] = slug
         return super().create(data)

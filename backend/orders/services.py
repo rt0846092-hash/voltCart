@@ -78,7 +78,11 @@ def create_order(*, user, items, shipping_details, payment_method):
             product = Product.objects.filter(pk=product_id).first()
             if not taken:
                 if product is None or not product.is_active:
-                    raise ValidationError({"items": "One of the products in your cart is no longer available."})
+                    name = product.name if product else "A product in your cart"
+                    raise ValidationError({
+                        "items": f"{name} is no longer available, so it was removed from your cart.",
+                        "product_id": product_id, "available": 0,
+                    })
                 left = product.stock
                 msg = f"{product.name} is sold out." if left == 0 else f"Only {left} left of {product.name}."
                 raise ValidationError({"items": msg, "product_id": product_id, "available": left})
