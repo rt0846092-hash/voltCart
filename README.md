@@ -104,6 +104,10 @@ Without Stripe keys the store still works, with cash on delivery only.
 - **API:** on [Render](https://render.com), **New → Blueprint → pick this repo**. It reads `render.yaml`. Set `DATABASE_URL` to the Neon string, plus the website address (`CORS_ALLOWED_ORIGINS`, `FRONTEND_URL`), your admin login, and optionally Stripe keys.
 - **Website:** on [Vercel](https://vercel.com), import this repo with **Root Directory** set to `frontend`, and set `VITE_API_URL` to `https://<your-api>.onrender.com/api`.
 
+## Credits
+
+Product photos are free photos from [Unsplash](https://unsplash.com) (Unsplash License), by Jonas Leupe, Vojtech Bruzek, Matteo Vella, Kari Shea, Alex Knight, Ales Nesetril, C D-X and Luke Peterson. Products without a photo show a drawn illustration.
+
 ## Author
 
 Roshan Tamang · [GitHub](https://github.com/rt0846092-hash) · [LinkedIn](https://www.linkedin.com/in/roshan-tamang-663015283)

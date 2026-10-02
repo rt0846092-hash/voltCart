@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 /**
  * Draws a product illustration in the product's colour, so the catalogue looks
  * consistent without stock photos. A real photo (image_url) is used when set.
@@ -71,9 +73,14 @@ const shapes = {
 export default function ProductArt({ product, className = "" }) {
   const color = product.color || "#1f2937";
   const kind = product.category?.kind ?? product.kind ?? "accessory";
+  const [failed, setFailed] = useState(false);
 
-  if (product.image_url) {
-    return <img src={product.image_url} alt={product.name} className={`object-cover ${className}`} loading="lazy" />;
+  // Real photo when there is one; the drawing is the fallback if the link breaks
+  if (product.image_url && !failed) {
+    return (
+      <img src={product.image_url} alt={product.name} loading="lazy" onError={() => setFailed(true)}
+        className={`bg-line/40 object-cover ${className}`} />
+    );
   }
 
   return (

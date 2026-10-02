@@ -5,6 +5,22 @@ from django.utils.text import slugify
 
 from store.models import Category, Product
 
+def unsplash(photo_id):
+    return f"https://images.unsplash.com/photo-{photo_id}?auto=format&fit=crop&w=900&q=70"
+
+
+# Free photos from Unsplash (Unsplash License), chosen without visible brand logos where possible
+PHOTOS = {
+    "nova-x-pro": unsplash("1592890288564-76628a30a657"),          # Jonas Leupe
+    "nova-lite-5": unsplash("1585060544812-6b45742d762f"),         # Vojtech Bruzek
+    "kite-fold": unsplash("1634403665481-74948d815f03"),           # Matteo Vella
+    "aero-book-14": unsplash("1496181133206-80ce9b88a853"),        # Kari Shea
+    "aero-book-16-studio": unsplash("1484788984921-03950022c9ef"), # Alex Knight
+    "vertex-15-gaming": unsplash("1531297484001-80022131f5a1"),    # Ales Nesetril
+    "pulse-anc-headphones": unsplash("1505740420928-5e560c06d30e"),# C D-X
+    "rift-headset-pro": unsplash("1618366712010-f4ae9c647dcb"),    # Luke Peterson
+}
+
 # Brands are invented so the demo doesn't look like it sells other companies' products
 CATEGORIES = [
     ("Phones", "phone"), ("Laptops", "laptop"), ("Audio", "audio"),
@@ -87,6 +103,7 @@ class Command(BaseCommand):
                 name=name, slug=slugify(name), brand=brand, category=cats[cat],
                 price=Decimal(price), compare_at_price=Decimal(compare) if compare else None,
                 stock=stock, featured=featured, color=color, tagline=tagline, specs=specs,
+                image_url=PHOTOS.get(slugify(name), ""),
                 description=(
                     f"{tagline} The {name} from {brand} is built for everyday use, "
                     f"with a design that's easy to live with and specs that hold up. "

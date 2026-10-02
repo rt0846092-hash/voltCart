@@ -4,7 +4,7 @@ import ProductArt from "./ProductArt";
 import { Alert, Button, Spinner } from "./ui";
 
 const BLANK = {
-  name: "", brand: "", category: "", tagline: "", description: "", price: "", compare_at_price: "",
+  name: "", brand: "", category: "", tagline: "", description: "", price: "", compare_at_price: "", image_url: "",
   stock: 0, color: "#1f2937", specs: {}, is_active: true, featured: false,
 };
 
@@ -17,7 +17,7 @@ const textToSpecs = (text) =>
 
 function ProductForm({ product, categories, onSaved, onClose }) {
   const isNew = !product.id;
-  const [form, setForm] = useState({ ...BLANK, category: categories[0]?.slug ?? "", ...product, compare_at_price: product.compare_at_price ?? "" });
+  const [form, setForm] = useState({ ...BLANK, category: categories[0]?.slug ?? "", ...product, compare_at_price: product.compare_at_price ?? "", image_url: product.image_url ?? "" });
   const [specsText, setSpecsText] = useState(specsToText(product.specs));
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -33,7 +33,8 @@ function ProductForm({ product, categories, onSaved, onClose }) {
       compare_at_price: form.compare_at_price === "" ? null : form.compare_at_price,
       specs: textToSpecs(specsText),
     };
-    delete body.id; delete body.slug; delete body.category_name; delete body.image_url;
+    delete body.id; delete body.slug; delete body.category_name;
+    body.image_url = (form.image_url || "").trim();
     try {
       const saved = await api(isNew ? "/admin/products/" : `/admin/products/${product.id}/`, {
         method: isNew ? "POST" : "PATCH",
@@ -79,6 +80,12 @@ function ProductForm({ product, categories, onSaved, onClose }) {
               <input className="field font-mono" value={form.color} onChange={set("color")} aria-label="Colour hex code" />
             </div>
           </div>
+          <div className="sm:col-span-2">
+            <label className="label" htmlFor="pf-image_url">Photo URL</label>
+            <input id="pf-image_url" className="field" type="url" placeholder="https://images.unsplash.com/photo-…"
+              value={form.image_url} onChange={set("image_url")} />
+            <p className="mt-1 text-xs text-ink-mute">Optional. Use a photo you have the rights to, like a free Unsplash photo. Leave empty to show the drawing.</p>
+          </div>
           {field("tagline", "Tagline", { required: true, wide: true, maxLength: 160 })}
           <div className="sm:col-span-2">
             <label className="label" htmlFor="pf-description">Description</label>
@@ -98,7 +105,7 @@ function ProductForm({ product, categories, onSaved, onClose }) {
         <div>
           <p className="label">Preview</p>
           <div className="overflow-hidden rounded-xl border border-line">
-            <ProductArt product={{ ...form, id: "preview", kind: categories.find((c) => c.slug === form.category)?.kind }} className="aspect-[4/3] w-full" />
+            <ProductArt key={form.image_url} product={{ ...form, id: "preview", kind: categories.find((c) => c.slug === form.category)?.kind }} className="aspect-[4/3] w-full" />
           </div>
         </div>
       </div>
